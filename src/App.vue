@@ -6,11 +6,20 @@ import BgmSettingsPanel from "./components/BgmSettingsPanel.vue";
 import { usePomodoroTimer } from "./composables/usePomodoroTimer";
 import { useBgm } from "./composables/useBgm";
 import { useNotificationSound } from "./composables/useNotificationSound";
+import { useBrowserNotification } from "./composables/useBrowserNotification";
 import { TRACKS, type BgmSettings } from "./types/pomodoro";
 
 const bgm = useBgm();
 const notification = useNotificationSound();
-const timer = usePomodoroTimer(() => {
+const browserNotification = useBrowserNotification();
+const {
+  supported,
+  permission,
+  requesting,
+  message: browserNotificationMessage,
+} = browserNotification;
+const timer = usePomodoroTimer((completedMode) => {
+  if (completedMode === "focus") browserNotification.notifyFocusComplete();
   notification.play();
   void bgm.sync(
     timer.mode.value === "focus" && timer.status.value === "running",
@@ -129,6 +138,19 @@ function retryAudio() {
           @change="changeSettings"
           @close="closePanel"
         />
+      </div>
+      <div class="notification-area">
+        <button
+          v-if="supported && permission === 'default'"
+          class="notification-button"
+          :disabled="requesting"
+          @click="browserNotification.enable"
+        >
+          {{
+            requesting ? "通知の許可を確認中…" : "集中終了の通知を有効にする"
+          }}
+        </button>
+        <p role="status">{{ browserNotificationMessage }}</p>
       </div>
       <div
         v-if="bgmError || notificationError"

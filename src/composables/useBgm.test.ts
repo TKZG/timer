@@ -59,13 +59,13 @@ it("validates stored settings and tolerates broken or blocked storage", () => {
   expect(readSettings()).toEqual({
     version: 1,
     type: "rain",
-    volume: 0.35,
+    volume: 0.15,
     enabled: false,
   });
   vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
     throw new Error("blocked");
   });
-  expect(readSettings().volume).toBe(0.35);
+  expect(readSettings().volume).toBe(0.15);
 });
 it("plays, pauses without rewinding, stops with rewind and persists selection", async () => {
   const bgm = mountBgm();

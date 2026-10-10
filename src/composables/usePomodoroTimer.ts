@@ -1,7 +1,9 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { DURATIONS, type TimerMode, type TimerStatus } from "../types/pomodoro";
 
-export function usePomodoroTimer(onBoundary: () => void = () => {}) {
+export function usePomodoroTimer(
+  onBoundary: (completedMode: TimerMode) => void = () => {},
+) {
   const mode = ref<TimerMode>("focus");
   const status = ref<TimerStatus>("idle");
   const remainingMs = ref<number>(DURATIONS.focus);
@@ -21,16 +23,16 @@ export function usePomodoroTimer(onBoundary: () => void = () => {}) {
   function tick() {
     if (status.value !== "running") return;
     const now = Date.now();
-    let crossed = false;
+    let completedMode: TimerMode | undefined;
     // Advance from the previous deadline, so throttled callbacks never add drift.
     while (now >= endAt) {
+      completedMode = mode.value;
       if (mode.value === "focus") completedSessions.value++;
       mode.value = mode.value === "focus" ? "break" : "focus";
       endAt += DURATIONS[mode.value];
-      crossed = true;
     }
     remainingMs.value = Math.max(0, endAt - now);
-    if (crossed) onBoundary();
+    if (completedMode) onBoundary(completedMode);
   }
   function clearTicker() {
     if (interval !== undefined) clearInterval(interval);

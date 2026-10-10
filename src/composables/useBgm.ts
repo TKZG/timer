@@ -6,7 +6,7 @@ const defaults: BgmSettings = {
   version: 1,
   enabled: true,
   type: "rain",
-  volume: 0.35,
+  volume: 0.15,
 };
 export function readSettings(): BgmSettings {
   try {
